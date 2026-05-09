@@ -1,0 +1,257 @@
+# AI-Pulse Configuration
+
+app:
+  name: AI-Pulse
+  version: 2.0.0
+  description: 多领域技术资讯监控系统
+
+# 爬虫配置
+scraper:
+  # 数据源选择: rss (推荐) 或 sogou
+  source: rss
+
+  # RSSHub 配置
+  # 注意: RSSHub 官方实例 (rsshub.app) 已限制访问
+  # 微信公众号获取需要自建 RSSHub 实例，部署指南: https://docs.rsshub.app/deploy/
+  rss:
+    enabled: true
+    # RSSHub 实例地址（强烈建议自建私有实例）
+    # 可通过环境变量 RSSHUB_BASE_URL 设置
+    rsshub_base: ""
+    # RSSHub ACCESS_KEY（部分实例需要）
+    # 可通过环境变量 RSSHUB_ACCESS_KEY 设置
+    access_key: ""
+    # 只获取最近 N 天的文章
+    max_age_days: 1
+    # 请求间隔（秒）
+    delay_seconds: 2
+
+    feeds:
+      # ============================================================
+      # Web 前端 (domain: frontend)
+      # ============================================================
+      - name: "CSS-Tricks"
+        url: "https://css-tricks.com/feed/"
+        category: "前端技术"
+        domain: frontend
+      - name: "web.dev"
+        url: "https://web.dev/blog/feed.xml"
+        category: "前端技术"
+        domain: frontend
+      - name: "DEV.to Frontend"
+        url: "https://dev.to/feed/tag/frontend"
+        category: "前端社区"
+        domain: frontend
+      - name: "DEV.to JavaScript"
+        url: "https://dev.to/feed/tag/javascript"
+        category: "前端社区"
+        domain: frontend
+
+      # ============================================================
+      # AI / 机器学习 (domain: ai)
+      # ============================================================
+
+      # --- 中文源 ---
+      - name: "机器之心"
+        url: "https://www.jiqizhixin.com/rss"
+        category: "AI资讯"
+        domain: ai
+      - name: "量子位"
+        url: "https://www.qbitai.com/feed"
+        category: "AI资讯"
+        domain: ai
+      - name: "InfoQ"
+        url: "${RSSHUB_BASE_URL}/infoq/recommend"
+        category: "技术媒体"
+        domain: ai
+      - name: "36氪"
+        url: "${RSSHUB_BASE_URL}/36kr/newsflashes"
+        category: "科技资讯"
+        domain: ai
+      - name: "少数派"
+        url: "https://sspai.com/feed"
+        category: "科技资讯"
+        domain: ai
+
+      # --- 英文源（官方 RSS，稳定）---
+      - name: "Google AI"
+        url: "https://blog.google/technology/ai/rss/"
+        category: "官方博客"
+        domain: ai
+      - name: "Microsoft AI"
+        url: "https://blogs.microsoft.com/ai/feed/"
+        category: "官方博客"
+        domain: ai
+      - name: "AWS Machine Learning"
+        url: "https://aws.amazon.com/blogs/machine-learning/feed/"
+        category: "官方博客"
+        domain: ai
+
+      # --- 英文源（自建 RSSHub）---
+      - name: "OpenAI"
+        url: "${RSSHUB_BASE_URL}/openai/news"
+        category: "官方博客"
+        domain: ai
+      - name: "Anthropic"
+        url: "${RSSHUB_BASE_URL}/anthropic/news"
+        category: "官方博客"
+        domain: ai
+
+      # --- 英文源（官方 RSS）---
+      - name: "Hugging Face"
+        url: "https://huggingface.co/blog/feed.xml"
+        category: "开源AI"
+        domain: ai
+      - name: "NVIDIA AI"
+        url: "https://blogs.nvidia.com/feed/"
+        category: "官方博客"
+        domain: ai
+
+      # --- 英文源（自建 RSSHub）---
+      - name: "Meta AI"
+        url: "${RSSHUB_BASE_URL}/meta/ai/blog"
+        category: "官方博客"
+        domain: ai
+
+      # --- 社区与学术 ---
+      - name: "Hacker News (AI)"
+        url: "https://hnrss.org/newest?q=AI%20OR%20LLM%20OR%20GPT&points=50"
+        category: "技术社区"
+        domain: ai
+      - name: "arXiv (AI)"
+        url: "http://export.arxiv.org/rss/cs.AI"
+        category: "学术论文"
+        domain: ai
+      - name: "arXiv (CL)"
+        url: "http://export.arxiv.org/rss/cs.CL"
+        category: "学术论文"
+        domain: ai
+
+      # ============================================================
+      # 开发工程化 / DevOps (domain: devops)
+      # ============================================================
+      - name: "GitHub Trending"
+        url: "${RSSHUB_BASE_URL}/github/trending/daily/any"
+        category: "开源项目"
+        domain: devops
+      - name: "The Changelog"
+        url: "https://changelog.com/news/feed"
+        category: "开发者新闻"
+        domain: devops
+      - name: "The New Stack"
+        url: "https://thenewstack.io/feed/"
+        category: "云原生"
+        domain: devops
+      - name: "DEV.to DevOps"
+        url: "https://dev.to/feed/tag/devops"
+        category: "DevOps 社区"
+        domain: devops
+
+  # 请求配置
+  request:
+    timeout: 30
+    max_retries: 3
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# AI 过滤配置
+filter:
+  enabled: true
+  # AI 后端选择:
+  #   "claude-code" - 使用本地 claude CLI（需安装 Claude Code，使用 Max 订阅额度，无需 API key）
+  #   "openai"      - 使用 OpenAI API（需设置 OPENAI_API_KEY 环境变量）
+  # 也可通过环境变量 AI_BACKEND 覆盖
+  ai_backend: claude-code
+  # 相关性阈值 (0-1)，分值越高过滤越严格
+  relevance_threshold: 0.85
+  # Claude Code 并发数（同时处理的文章数，建议 2-5）
+  # 也可通过环境变量 AI_MAX_CONCURRENCY 覆盖
+  max_concurrency: 3
+
+  # 关键词过滤（AI判断前的预过滤，多领域通用）
+  keywords:
+    include:
+      # AI / ML
+      - AI
+      - 人工智能
+      - ChatGPT
+      - GPT
+      - Claude
+      - Gemini
+      - 大模型
+      - LLM
+      - 机器学习
+      - 深度学习
+      - 神经网络
+      - NLP
+      - 自然语言处理
+      - 计算机视觉
+      - AIGC
+      - Agent
+      - RAG
+      - Prompt
+      - 向量数据库
+      - Embedding
+      - Transformer
+      - Diffusion
+      - Stable Diffusion
+      - Midjourney
+      - OpenAI
+      - Anthropic
+      - 智谱
+      - 百川
+      - 通义
+      - 文心
+      - Llama
+      - Mistral
+      - Qwen
+      # Frontend
+      - React
+      - Vue
+      - Svelte
+      - Next.js
+      - Nuxt
+      - TypeScript
+      - Vite
+      - Bun
+      - Deno
+      - CSS
+      - WebAssembly
+      - TC39
+      # DevOps
+      - Docker
+      - Kubernetes
+      - Rust
+      - Go
+      - CI/CD
+      - DevOps
+      - Terraform
+      - VS Code
+      - Cursor
+    exclude:
+      - 广告
+      - 招聘
+      - 课程推广
+      - 限时优惠
+
+# 通知配置
+notifier:
+  lark:
+    enabled: true
+    # Webhook URL 从环境变量读取
+    message_type: interactive  # text, interactive
+
+# 调度配置
+scheduler:
+  timezone: Asia/Shanghai
+  jobs:
+    # 每天早上9点检查新文章并发送
+    - name: daily_check
+      cron: "0 9 * * *"
+      enabled: true
+
+# 存储配置
+storage:
+  # 文章保留天数
+  retention_days: 30
+  # 去重窗口（小时）
+  dedup_window_hours: 48

@@ -1,0 +1,37 @@
+# HTTP Client
+httpx>=0.25.0
+httpx[http2]>=0.25.0
+
+# HTML Parsing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# RSS Parsing
+feedparser>=6.0.0
+
+# Browser Automation (for anti-scraping)
+playwright>=1.40.0
+
+# Scheduling
+apscheduler>=3.10.0
+
+# Database
+sqlalchemy>=2.0.0
+
+# Configuration
+pyyaml>=6.0.0
+python-dotenv>=1.0.0
+
+# AI Processing
+openai>=1.0.0
+
+# Utilities
+tenacity>=8.2.0  # Retry logic
+pydantic>=2.0.0  # Data validation
+rich>=13.0.0     # Beautiful console output
+
+# Lark/Feishu SDK
+lark-oapi>=1.0.0
+
+# Email
+aiosmtplib>=3.0.0
