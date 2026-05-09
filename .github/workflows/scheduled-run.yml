@@ -1,0 +1,100 @@
+name: Scheduled AI-Pulse Run
+
+# =============================================
+# GitHub Secrets 配置说明
+#
+# 必需:
+#   1. LARK_WEBHOOK_URL  = 飞书机器人 Webhook URL
+#   2. OPENAI_API_KEY    = OpenAI / MiniMax / 任意兼容服务的 API Key
+#   3. OPENAI_BASE_URL   = API 地址（如 https://api.minimax.chat/v1）
+#   4. OPENAI_MODEL      = 模型名（如 gpt-4o-mini / abab6.5s-chat）
+#
+# 可选 (RSSHub):
+#   5. RSSHUB_BASE_URL   = 自建 RSSHub 地址（部分 RSS 源依赖）
+#
+# 可选 (并发控制):
+#   6. AI_MAX_CONCURRENCY = 并发请求数（默认 3）
+#
+# 可选 (邮件通知):
+#   7. EMAIL_SMTP_HOST     = SMTP 服务器（默认 smtp.gmail.com）
+#   8. EMAIL_SMTP_PORT     = SMTP 端口（默认 587）
+#   9. EMAIL_SMTP_USER     = 发件邮箱（如 xxx@gmail.com）
+#  10. EMAIL_SMTP_PASSWORD = 应用专用密码（16 位）
+#  11. EMAIL_TO            = 收件邮箱
+#
+# 说明: GitHub Actions 仅支持 OpenAI 兼容后端 (AI_BACKEND=openai)。
+#       如需使用 Claude Code CLI（复用本地 Claude 订阅额度），请在
+#       自有服务器或本地部署，详见 README。
+# =============================================
+
+on:
+  # 定时运行：每天 UTC 22:00 (新加坡时间 6:00)，预计延迟后约8:00触发
+  schedule:
+    - cron: '0 22 * * *'
+
+  # 手动触发
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Create data directory
+        run: mkdir -p data logs
+
+      - name: Run AI-Pulse
+        timeout-minutes: 20
+        env:
+          # 强制使用 OpenAI 兼容后端
+          AI_BACKEND: openai
+          AI_MAX_CONCURRENCY: ${{ secrets.AI_MAX_CONCURRENCY }}
+
+          # OpenAI 兼容后端
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+
+          # 通用
+          RSSHUB_BASE_URL: ${{ secrets.RSSHUB_BASE_URL }}
+          LARK_WEBHOOK_URL: ${{ secrets.LARK_WEBHOOK_URL }}
+
+          # 邮件通知（可选）
+          EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+          EMAIL_SMTP_USER: ${{ secrets.EMAIL_SMTP_USER }}
+          EMAIL_SMTP_PASSWORD: ${{ secrets.EMAIL_SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          python -m src.main run
+
+      - name: Upload database artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: articles-db
+          path: data/articles.db
+          retention-days: 7
+        if: always()
+
+      - name: Upload daily report
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-report
+          path: data/daily/
+          retention-days: 30
+        if: always()
